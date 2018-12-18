@@ -81,24 +81,21 @@ echo "Enabling vfio drivers"
 # If you're seeing this that means I got bored and I literally provided you a prebuilt SeaBIOS
 # Which I'm certain probably wouldn't be up to date.
 
-echo "Acquiring SeaBIOS."
+qemu_seabios_bin="$HOME/.qemu/bios/seabios.bin"
+qemu_disk_img="$HOME/.qemu/vm.img"
 
- qemu_seabios_bin="$HOME/.qemu/bios/seabios.bin"
- qemu_disk_img="$HOME/.qemu/vm.img"
+if [ ! -f "$qemu_seabios_bin" ]; then
+    echo "Acquiring SeaBIOS..."
+    mkdir -p "$HOME/.qemu/bios"
+    wget -O "$qemu_seabios_bin" "https://github.com/sr229/LnxSandbox/raw/master/lib/bios/seabios.bin"
+fi
 
- if [ ! -f "$qemu_seabios_bin" ]; then
-     mkdir -p "$HOME/.qemu/bios"
-     wget -O "$qemu_seabios_bin" "https://github.com/sr229/LnxSandbox/raw/master/lib/bios/seabios.bin"
- fi
-
- if [ ! -f "$qemu_disk_img" ]; then
-     echo "Making Disk image for VM, this may take a while."
-     qemu-img create -f qcow2 "$qemu_disk_img" 50g
- fi
-
+if [ ! -f "$qemu_disk_img" ]; then
+    echo "Making Disk image for VM, this may take a while."
+    qemu-img create -f qcow2 "$qemu_disk_img" 50g
+fi
 
 
-# TODO: get USB IDs properly.
 export QEMU_AUDIO_DRV=alsa QEMU_AUDIO_TIMER_PERIOD=0
 cmd="qemu-system-x86_64 \
     -enable-kvm -M q35 -m 1024 -cpu host -smp 4,sockets=1,cores=4,threads=1 \
@@ -111,10 +108,8 @@ cmd="qemu-system-x86_64 \
     -soundhw ac97 \
     -drive file=$qemu_disk_img,id=disk,format=raw -device ide-hd,bus=piix4-ide.0,drive=disk \
     -drive file=$image,id=isocd -device ide-cd,bus=piix4-ide.1,drive=isocd \
-;"
+"
 
 for val in "${multi[@]}"; do
-  echo "-usb -usbdevice host:$val \\" >> "$cmd";
+  printf "%s\n-usb -usbdevice host:$val" "$cmd" | sed -e '$s/$/;/' | sh -  
 done
-
-exec "$cmd"
