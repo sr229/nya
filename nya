@@ -64,7 +64,7 @@ if [ ! -f "$image" ]; then
   exit 2;
 fi
 
-echo "Mounting Image $1."
+echo "Mounting Image $image."
 echo "If you ever encounter issues with this script, please report immediately so we know what we can do."
 sleep 3
 
