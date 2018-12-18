@@ -108,7 +108,6 @@ cmd="qemu-system-x86_64 \
     -device piix4-ide,bus=pcie.0,id=piix4-ide \
     -device vfio-pci,host=01:00.0,bus=root.1,addr=00.0,multifunction=on,x-vga=on,romfile=$qemu_seabios_bin \
     -device vfio-pci,host=01:00.1,bus=pcie.0 \
-    -usb -usbdevice host:$usb \
     -soundhw ac97 \
     -drive file=$qemu_disk_img,id=disk,format=raw -device ide-hd,bus=piix4-ide.0,drive=disk \
     -drive file=$image,id=isocd -device ide-cd,bus=piix4-ide.1,drive=isocd \
