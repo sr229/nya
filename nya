@@ -32,7 +32,7 @@ while getopts ":i:g:u:l:x:" o; do
 done
 shift $((OPTIND-1))
 
-if [ -z "${gpu_model_id}" ] || [ -z "${gpu_vendor_id}" ] || [ -z "${usb}" ] || [ -z "${image}" ] || [ -z "${gpu_pci_id}" ]; then
+if [ -z "${gpu_model_id}" ] || [ -z "${gpu_vendor_id}" ] || [ -z "${multi}" ] || [ -z "${image}" ] || [ -z "${gpu_pci_id}" ]; then
     echo "Usage: $0 -i <image_file> -u <usb_vendor_id> -g <gpu_vendor_id> -l <gpu_model_id> -x <gpu_pci_id>"
     echo "You can grab the USB vendor ID from lsusb and for the GPU Vendor, GPU Model, and the Bus ID, use lspci."
     exit 1;
