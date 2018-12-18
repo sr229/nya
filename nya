@@ -97,7 +97,7 @@ fi
 
 
 export QEMU_AUDIO_DRV=alsa QEMU_AUDIO_TIMER_PERIOD=0
-cmd="qemu-system-x86_64 \
+cmd="$qemu_bin \
     -enable-kvm -M q35 -m 1024 -cpu host -smp 4,sockets=1,cores=4,threads=1 \
     -cpu host,kvm=off \
     -bios /usr/share/qemu/bios.bin -vga none \
