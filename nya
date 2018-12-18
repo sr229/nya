@@ -46,7 +46,7 @@ export qemu_target_arch=
 
 case $arch in
   x86_64) qemu_target_arch="qemu-system-x86_64" ;;
-  i386) qemu_target_arch="qemu-system-i385" ;;
+  i386) qemu_target_arch="qemu-system-i386" ;;
   arm) qemu_target_arch="qemu-system-arm" ;;
   ppc64el) qemu_target_arch="qemu-system-powerpc" ;;
   *) echo "Unsupported arch"; exit 1 ;;
