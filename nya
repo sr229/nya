@@ -1,0 +1,116 @@
+#!/bin/sh
+#
+# Copyright 2018 (c) Capuccino <enra@sayonika.moe>
+#
+#
+# Feel free to improve this script on GitHub
+
+while getopts ":i:g:u:l:x:" o; do
+    case "${o}" in
+        i)
+            image=${OPTARG}
+            ;;
+        u)
+            usb=${OPTARG}
+            ;;
+        g)  
+            gpu_vendor_id=${OPTARG}
+            ;;
+        l) 
+            gpu_model_id=${OPTARG}
+            ;; 
+        x) 
+            gpu_pci_id=${OPTARG}
+            ;;
+        *)
+            echo "Usage: $0 -i <image_file> -u <usb_vendor_id> -g <gpu_vendor_id> -l <gpu_model_id> -x <gpu_pci_id>"
+            echo "You can grab the USB vendor ID from lsusb and for the GPU Vendor, GPU Model, and the Bus ID, use lspci."
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+if [ -z "${gpu_model_id}" ] || [ -z "${gpu_vendor_id}" ] || [ -z "${usb}" ] || [ -z "${image}" ] || [ -z "${gpu_pci_id}" ]; then
+    echo "Usage: $0 -i <image_file> -u <usb_vendor_id> -g <gpu_vendor_id> -l <gpu_model_id> -x <gpu_pci_id>"
+    echo "You can grab the USB vendor ID from lsusb and for the GPU Vendor, GPU Model, and the Bus ID, use lspci."
+fi
+
+
+# Check first if QEMU is installed
+
+arch="$(uname -p)"
+export qemu_target_arch=
+
+case $arch in
+  x86_64\*) qemu_target_arch="qemu-system-x86_64" ;;
+  i386\*) qemu_target_arch="qemu-system-i385" ;;
+  arm\*) qemu_target_arch="qemu-system-arm" ;;
+  ppc64el\*) qemu_target_arch="qemu-system-powerpc" ;;
+  *) echo "Unsupported arch"; exit 1 ;;
+esac
+
+qemu_bin="/usr/bin/$qemu_target_arch"
+
+if [ -z "$(command -v $qemu_bin)" ]; then
+  echo "QEMU not installed. Please install QEMU first before using this script."
+  exit 1;
+fi
+
+if [ -z "$1" ]; then
+  echo "Error: you need to tell me what image should I mount."
+  exit 2;
+elif [ ! -f "$1" ]; then
+  echo "Error: Image does not exist."
+  exit 2;
+fi
+
+echo "Mounting Image $1."
+echo "If you ever encounter issues with this script, please report immediately so we know what we can do."
+sleep 3
+
+# Let's initialize some Controllers
+# we need to parse the following:
+# - GPU
+# - USB Host
+# 
+# The very reason for this is no one is gonna be assed to do lspci or don't know how to use it so we're gonna be
+# grabbing the PCI id for the VGA controller.
+
+
+echo "Enabling vfio drivers"
+  sudo modprobe vfio
+  sudo modprobe vfio_pci
+  echo "0000:$gpu_pci_id" | sudo tee /sys/bus/pci/devices/0000:01:00.1/driver/unbind
+  echo 1002 6739 | sudo tee /sys/bus/pci/drivers/vfio-pci/new_id
+  echo 1002 aa88 | sudo tee /sys/bus/pci/drivers/vfio-pci/new_id 
+
+echo "Acquiring SeaBIOS."
+
+ qemu_seabios_bin="$HOME/.qemu/bios/seabios.bin"
+ qemu_disk_img="$HOME/.qemu/vm.img"
+
+ if [ ! -f "$qemu_seabios_bin" ]; then
+     mkdir -p "$HOME/.qemu/bios"
+     wget -O "$qemu_seabios_bin" "https://github.com/sr229/LnxSandbox/raw/master/lib/bios/seabios.bin"
+ fi
+
+ if [ ! -f "$qemu_disk_img" ]; then
+     echo "Making Disk image for VM, this may take a while."
+     qemu-img create -f qcow2 "$qemu_disk_img" 50g
+ fi
+
+# TODO: get USB IDs properly.
+export QEMU_AUDIO_DRV=alsa QEMU_AUDIO_TIMER_PERIOD=0
+qemu-system-x86_64 \
+    -enable-kvm -M q35 -m 1024 -cpu host -smp 4,sockets=1,cores=4,threads=1 \
+    -cpu host,kvm=off \
+    -bios /usr/share/qemu/bios.bin -vga none \
+    -device ioh3420,bus=pcie.0,addr=1c.0,multifunction=on,port=1,chassis=1,id=root.1 \
+    -device piix4-ide,bus=pcie.0,id=piix4-ide \
+    -device vfio-pci,host=01:00.0,bus=root.1,addr=00.0,multifunction=on,x-vga=on,romfile="$qemu_seabios_bin" \
+    -device vfio-pci,host=01:00.1,bus=pcie.0 \
+    -usb -usbdevice host:"$usb" -usbdevice host:1d6b:0002 \
+    -soundhw ac97 \
+    -drive file="$qemu_disk_img",id=disk,format=raw -device ide-hd,bus=piix4-ide.0,drive=disk \
+    -drive file="$image",id=isocd -device ide-cd,bus=piix4-ide.1,drive=isocd \
+;
