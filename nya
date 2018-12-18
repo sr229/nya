@@ -75,8 +75,8 @@ echo "Enabling vfio drivers"
   sudo modprobe vfio
   sudo modprobe vfio_pci
   echo "0000:$gpu_pci_id" | sudo tee /sys/bus/pci/devices/0000:01:00.1/driver/unbind
-  echo 1002 6739 | sudo tee /sys/bus/pci/drivers/vfio-pci/new_id
-  echo 1002 aa88 | sudo tee /sys/bus/pci/drivers/vfio-pci/new_id 
+  echo "$gpu_vendor_id" "$gpu_model_id"| sudo tee /sys/bus/pci/drivers/vfio-pci/new_id
+  echo "$gpu_vendor_id" aa88 | sudo tee /sys/bus/pci/drivers/vfio-pci/new_id 
 
 # If you're seeing this that means I got bored and I literally provided you a prebuilt SeaBIOS
 # Which I'm certain probably wouldn't be up to date.
