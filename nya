@@ -52,9 +52,9 @@ case $arch in
   *) echo "Unsupported arch"; exit 1 ;;
 esac
 
-qemu_bin="/usr/bin/$qemu_target_arch"
+qemu_bin="$(command -v $qemu_target_arch)"
 
-if [ -z "$(command -v $qemu_bin)" ]; then
+if [ -z "$qemu_bin" ]; then
   echo "QEMU not installed. Please install QEMU first before using this script."
   exit 1;
 fi
