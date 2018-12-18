@@ -111,5 +111,7 @@ cmd="$qemu_bin \
 "
 
 for val in "${multi[@]}"; do
-  printf "%s\n-usb -usbdevice host:$val" "$cmd" | sed -e '$s/$/;/' | sh
+  appended_cmd="$(printf "%s\n-usb -usbdevice host:$val" "$cmd" | sed -e '$s/$/;/')"
 done
+
+exec "$appended_cmd"
