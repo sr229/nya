@@ -81,13 +81,13 @@ echo "Enabling vfio drivers"
 # If you're seeing this that means I got bored and I literally provided you a prebuilt SeaBIOS
 # Which I'm certain probably wouldn't be up to date.
 
-qemu_seabios_bin="$HOME/.qemu/bios/seabios.bin"
+qemu_vgabios_bin="$HOME/.qemu/bios/vgabios.bin"
 qemu_disk_img="$HOME/.qemu/vm.img"
 
-if [ ! -f "$qemu_seabios_bin" ]; then
+if [ ! -f "$qemu_vgabios_bin" ]; then
     echo "Acquiring SeaBIOS..."
     mkdir -p "$HOME/.qemu/bios"
-    wget -O "$qemu_seabios_bin" "https://github.com/sr229/LnxSandbox/raw/master/lib/bios/seabios.bin"
+    wget -O "$qemu_vgabios_bin" "https://github.com/sr229/LnxSandbox/raw/master/lib/bios/vgabios.bin"
 fi
 
 if [ ! -f "$qemu_disk_img" ]; then
@@ -103,7 +103,7 @@ cmd="$qemu_bin \
     -bios /usr/share/qemu/bios.bin -vga none \
     -device ioh3420,bus=pcie.0,addr=1c.0,multifunction=on,port=1,chassis=1,id=root.1 \
     -device piix4-ide,bus=pcie.0,id=piix4-ide \
-    -device vfio-pci,host=01:00.0,bus=root.1,addr=00.0,multifunction=on,x-vga=on,romfile=$qemu_seabios_bin \
+    -device vfio-pci,host=01:00.0,bus=root.1,addr=00.0,multifunction=on,x-vga=on,romfile=$qemu_vgabios_bin \
     -device vfio-pci,host=01:00.1,bus=pcie.0 \
     -soundhw ac97 \
     -drive file=$qemu_disk_img,id=disk,format=raw -device ide-hd,bus=piix4-ide.0,drive=disk \
