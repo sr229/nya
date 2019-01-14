@@ -6,8 +6,14 @@
 # Feel free to improve this script on GitHub
 
 # I ran out of ideas here so feel free to do some weird lettering shit that matches this more
-while getopts ":i:g:u:l:x:" o; do
+while getopts ":i:g:u:l:x:d:r" o; do
     case "${o}" in
+        d)
+            disk_size=${OPTARG}
+            ;;
+        r)
+            ram_size=${OPTARG}
+            ;;
         i)
             image=${OPTARG}
             ;;
@@ -24,7 +30,7 @@ while getopts ":i:g:u:l:x:" o; do
             gpu_pci_id=${OPTARG}
             ;;
         *)
-            echo "Usage: $0 -i <image_file> -u <usb_vendor_id> -g <gpu_vendor_id> -l <gpu_model_id> -x <gpu_pci_id>"
+            echo "Usage: $0 -i <image_file> -u <usb_vendor_id> -g <gpu_vendor_id> -l <gpu_model_id> -x <gpu_pci_id> -d <disk_size> -r <ram_size>"
             echo "You can grab the USB vendor ID from lsusb and for the GPU Vendor, GPU Model, and the Bus ID, use lspci."
             exit 1;
             ;;
@@ -38,7 +44,16 @@ if [ -z "${gpu_model_id}" ] || [ -z "${gpu_vendor_id}" ] || [ -z "${multi}" ] ||
     exit 1;
 fi
 
-
+if [ -z "${disk_size}" ] && [ -z "${ram_size}" ]; then
+   
+   # Add some sane defaults
+   ram_size="2048"
+   disk_size="50"
+elif [ -n "${disk_size}" ] && [ -z "${ram_size}" ]; then
+   ram_size="2048"
+elif [ -z "${disk_size}" ] && [ -n "${ram_size}" ]; then
+   disk_size="50"
+fi
 # Check first if QEMU is installed
 
 arch="$(uname -p)"
@@ -92,13 +107,13 @@ fi
 
 if [ ! -f "$qemu_disk_img" ]; then
     echo "Making Disk image for VM, this may take a while."
-    qemu-img create -f qcow2 "$qemu_disk_img" 50g
+    qemu-img create -f qcow2 "$qemu_disk_img" "$disk_size\g"
 fi
 
 
 export QEMU_AUDIO_DRV=alsa QEMU_AUDIO_TIMER_PERIOD=0
 cmd="$qemu_bin \
-    -enable-kvm -M q35 -m 1024 -cpu host -smp 4,sockets=1,cores=4,threads=1 \
+    -enable-kvm -M q35 -m $ram_size -cpu host -smp 4,sockets=1,cores=4,threads=1 \
     -cpu host,kvm=off \
     -bios /usr/share/qemu/bios.bin -vga none \
     -device ioh3420,bus=pcie.0,addr=1c.0,multifunction=on,port=1,chassis=1,id=root.1 \
