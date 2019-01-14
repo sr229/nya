@@ -45,7 +45,6 @@ if [ -z "${gpu_model_id}" ] || [ -z "${gpu_vendor_id}" ] || [ -z "${multi}" ] ||
 fi
 
 if [ -z "${disk_size}" ] && [ -z "${ram_size}" ]; then
-   
    # Add some sane defaults
    ram_size="2048"
    disk_size="50"
