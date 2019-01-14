@@ -32,6 +32,8 @@ while getopts ":i:g:u:l:x:d:r" o; do
         *)
             echo "Usage: $0 -i <image_file> -u <usb_vendor_id> -g <gpu_vendor_id> -l <gpu_model_id> -x <gpu_pci_id> -d <disk_size> -r <ram_size>"
             echo "You can grab the USB vendor ID from lsusb and for the GPU Vendor, GPU Model, and the Bus ID, use lspci."
+            echo "Disk Size is in GiB, so when denoting 50Gi, it would be 50Gi, obviously."
+            echo "RAM is in MiB, so when denoting 2Gi, it would be 2048MiB."
             exit 1;
             ;;
     esac
@@ -39,8 +41,10 @@ done
 shift $((OPTIND-1))
 
 if [ -z "${gpu_model_id}" ] || [ -z "${gpu_vendor_id}" ] || [ -z "${multi}" ] || [ -z "${image}" ] || [ -z "${gpu_pci_id}" ]; then
-    echo "Usage: $0 -i <image_file> -u <usb_vendor_id> -g <gpu_vendor_id> -l <gpu_model_id> -x <gpu_pci_id>"
+    echo "Usage: $0 -i <image_file> -u <usb_vendor_id> -g <gpu_vendor_id> -l <gpu_model_id> -x <gpu_pci_id> -d <disk_size> -r <ram_size>"
     echo "You can grab the USB vendor ID from lsusb and for the GPU Vendor, GPU Model, and the Bus ID, use lspci."
+    echo "Disk Size is in GiB, so when denoting 50Gi, it would be 50Gi, obviously."
+    echo "RAM is in MiB, so when denoting 2Gi, it would be 2048MiB."
     exit 1;
 fi
 
