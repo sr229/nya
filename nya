@@ -5,6 +5,8 @@
 #
 # Feel free to improve this script on GitHub
 
+set -eo pipefail
+
 # I ran out of ideas here so feel free to do some weird lettering shit that matches this more
 while getopts ":i:g:u:l:x:d:r" o; do
     case "${o}" in
